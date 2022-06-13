@@ -44,23 +44,23 @@ def decrypt_session_key_with_rsa(session_key_encoded, rsa_kye):
         return False
 
 
-def generate_keys(letter):
-    (publicKey, privateKey) = rsa.newkeys(1024)  # 1024 - 128 byte key
-    with open('./Keys' + letter + '/PublicKeys/publicKey' + letter + '.pem', 'wb') as f:
-        f.write(publicKey.save_pkcs1('PEM'))
-    with open('./Keys' + letter + '/PrivateKeys/privateKey' + letter + '.pem', 'wb') as f:
-        f.write(privateKey.save_pkcs1('PEM'))
-
-    print("Keys Generated")
-
-
-def load_keys(letter):
-    with open('./Keys' + letter + '/PublicKeys/publicKey' + letter + '.pem', 'rb') as f:
-        publicKey = rsa.PublicKey.load_pkcs1(f.read())
-    with open('./Keys' + letter + '/PrivateKeys/privateKey' + letter + '.pem', 'rb') as f:
-        privateKey = rsa.PrivateKey.load_pkcs1(f.read())
-
-    return publicKey, privateKey
+# def generate_keys(letter):
+#     (publicKey, privateKey) = rsa.newkeys(1024)  # 1024 - 128 byte key
+#     with open('./Keys' + letter + '/PublicKeys/publicKey' + letter + '.pem', 'wb') as f:
+#         f.write(publicKey.save_pkcs1('PEM'))
+#     with open('./Keys' + letter + '/PrivateKeys/privateKey' + letter + '.pem', 'wb') as f:
+#         f.write(privateKey.save_pkcs1('PEM'))
+#
+#     print("Keys Generated")
+#
+#
+# def load_keys(letter):
+#     with open('./Keys' + letter + '/PublicKeys/publicKey' + letter + '.pem', 'rb') as f:
+#         publicKey = rsa.PublicKey.load_pkcs1(f.read())
+#     with open('./Keys' + letter + '/PrivateKeys/privateKey' + letter + '.pem', 'rb') as f:
+#         privateKey = rsa.PrivateKey.load_pkcs1(f.read())
+#
+#     return publicKey, privateKey
 
 
 class AESCipher:
@@ -80,10 +80,10 @@ class AESCipher:
         return unpad(self.cipher.decrypt(raw[AES.block_size:]), AES.block_size)
 
 
-def encryptRSAKeysAndSave(letter):
-    cbc = AESCipher()
-    publicKey, privateKey = load_keys(letter)
+def create_rsa_keys_encrypt_and_save(letter):
 
+    (publicKey, privateKey) = rsa.newkeys(1024)  # 1024 - 128 byte key
+    cbc = AESCipher()
     publicKeyInBytes = publicKey.save_pkcs1()
     privateKeyInBytes = privateKey.save_pkcs1()
 
@@ -99,7 +99,7 @@ def encryptRSAKeysAndSave(letter):
         f.write(cipheredPrivateKey)
 
 
-def decryptRSAKeysAndReturn(letter):
+def decrypt_rsa_keys_and_return(letter):
     cbc = AESCipher()
     with open('Keys' + letter + '/PublicKeys/encryptedPublicKey' + letter + '.txt', 'rb') as f:
         cipheredPublicKey = f.read().decode('utf-8')

@@ -11,12 +11,12 @@ from Threads.GuiThread import *
 # if not exists('./KeysA/PublicKeys/publicKeyA.pem') or not exists('./KeysA/PrivateKeys/privateKeyA.pem'):
 #     generate_keys('A')  # Wygenerowanie kluczy RSA
 
-generate_keys('A')
-encryptRSAKeysAndSave('A')
+# generate_keys('A')
+create_rsa_keys_encrypt_and_save('A')
 
 # LOAD KEYS
 # publicKey, privateKey = load_keys('A')
-publicKey, privateKey = decryptRSAKeysAndReturn('A')
+publicKey, privateKey = decrypt_rsa_keys_and_return('A')
 # -----------------------------------------------------------------------------------------------------
 print(publicKey)
 print(privateKey)
