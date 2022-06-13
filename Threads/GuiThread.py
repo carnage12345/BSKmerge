@@ -8,7 +8,7 @@ from Crypto.Util.Padding import pad
 
 
 def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, otherPublicKey, sessionKey):
-
+    print('Starting B GUI Thread')
     #  -------
     #  TKINTER
     #  -------

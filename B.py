@@ -11,14 +11,18 @@ from Threads.GuiThread import *
 # if not exists('./KeysB/PublicKeys/publicKeyB.pem') or not exists('./KeysB/PrivateKeys/privateKeyB.pem'):
 #     generate_keys('B')  # Wygenerowanie kluczy RSA
 generate_keys('B')
+encryptRSAKeysAndSave('B')
 
 # LOAD KEYS
-publicKey, privateKey = load_keys('B')
+# publicKey, privateKey = load_keys('A')
+publicKey, privateKey = decryptRSAKeysAndReturn('B')
 # -----------------------------------------------------------------------------------------------------
+print(publicKey)
+print(privateKey)
 
 
 #  Sockets #czy nie da sie zrobic tego na jednu
-HOST = '192.168.1.12'  # tomek - 192.168.1.12,  jakub -192.168.0.193, 127.0.0.1 zawsze dziala
+HOST = '192.168.1.12'  # tomek - 192.168.1.12,  jakub - 192.168.0.193, 127.0.0.1 zawsze dziala
 sendPORT = 8888
 receivePORT = 8887
 BUFFER = 4194304  # 4 MB
@@ -29,10 +33,9 @@ socketSendB = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # AF_INET - soc
 queue = Queue()
 
 
-print("Starting " + 'B' + " GUI Thread")
 socketReceiveB.bind((HOST, receivePORT))  # CONNECT TO SERVER
 socketReceiveB.listen(2)  # liczba miejsc w kolejce
-print("Starting " + 'B' + " receive thread")
+
 socketSendB.connect((HOST, sendPORT))
 
 
@@ -46,10 +49,12 @@ print(f"Uzyskano polaczenie od {address} | lub {address[0]}:{address[1]}")
 print("wysyłam klucz swój publiczny")
 print("mój publicKey:" + str(publicKey))
 socketSendB.send(publicKey.save_pkcs1(format='PEM'))
+# socketSendB.send(publicKey)
 print("mój klucz publiczny wysłany\n")
 
 #  RECEIVE PUBLIC KEY FROM SERVER
 otherPublicKey = rsa.key.PublicKey.load_pkcs1(socketReceiveB.recv(BUFFER), format='PEM')  # DER
+# otherPublicKey = socketReceiveB.recv(BUFFER)
 print("Otrzymano klucz publiczny:" + str(otherPublicKey))
 
 

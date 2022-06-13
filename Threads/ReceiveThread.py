@@ -4,7 +4,7 @@ from RSAKeysLibrary import *
 
 
 def ReceiveThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, sessionKey):
-
+    print('Starting ' + name + ' receive thread')
     #  MAIN LOOP
     while True:
         TEST = socket.recv(BUFFER).decode("utf8")
