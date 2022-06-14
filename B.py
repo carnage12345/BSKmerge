@@ -7,15 +7,14 @@ from Threads.ReceiveThread import *
 from Threads.GuiThread import *
 
 
-# ------------------------------------------RSA KEYS---------------------------------------------------
-# if not exists('./KeysB/PublicKeys/publicKeyB.pem') or not exists('./KeysB/PrivateKeys/privateKeyB.pem'):
-#     generate_keys('B')  # Wygenerowanie kluczy RSA
-# generate_keys('B')
-create_rsa_keys_encrypt_and_save('B')
+# ---------------------------------------RSA KEYS-------------------------------------------------------
+
+rsaLocalKeyClass = AESCipher('B')
+rsaLocalKeyClass.generate_rsa_keys()
+rsaLocalKeyClass.change_password_and_local_key_and_encrypt_rsa_keys_and_save('something')
 
 # LOAD KEYS
-# publicKey, privateKey = load_keys('A')
-publicKey, privateKey = decrypt_rsa_keys_and_return('B')
+publicKey, privateKey = rsaLocalKeyClass.decrypt_rsa_keys_and_return()
 # -----------------------------------------------------------------------------------------------------
 print(publicKey)
 print(privateKey)
@@ -67,7 +66,7 @@ print("sessionKey: " + str(receivedSessionKey))
 # ---------------------------------------------------------------Threads------------------------------------------------
 # Create threads
 receivingThreadB = threading.Thread(target=ReceiveThread, args=[1, 'B', socketReceiveB, BUFFER, queue, publicKey, privateKey, receivedSessionKey])
-GUIThreadB = threading.Thread(target=GuiThread, args=[2, 'B', socketSendB, BUFFER, queue, publicKey, privateKey, otherPublicKey, receivedSessionKey])
+GUIThreadB = threading.Thread(target=GuiThread, args=[2, 'B', socketSendB, BUFFER, queue, publicKey, privateKey, otherPublicKey, receivedSessionKey, rsaLocalKeyClass])
 
 # Start threads
 receivingThreadB.start()

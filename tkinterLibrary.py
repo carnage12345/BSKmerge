@@ -128,5 +128,9 @@ def check_queue(queue, control):
         print('queue is not empty')
         control.set(queue.get())
 
+def button_set_password(control, rsaLocalKeyClass):
+    newPassword = control.get()
+    rsaLocalKeyClass.change_password_and_local_key_and_encrypt_rsa_keys_and_save(newPassword)
+
 
 

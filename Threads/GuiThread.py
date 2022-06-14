@@ -7,7 +7,7 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
 
-def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, otherPublicKey, sessionKey):
+def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, otherPublicKey, sessionKey, rsaLocalKey):
     print('Starting B GUI Thread')
     #  -------
     #  TKINTER
@@ -38,8 +38,6 @@ def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, othe
     sendButton.pack()
 
 
-
-
     # RSA Messages (to delete in future) (won't be used for message exchange just session key)
     entry_encoded = tk.Entry(window)
     entry_encoded.pack()
@@ -61,16 +59,20 @@ def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, othe
     print(cipheringMode)
 
 
-
-
-
-
     #  CBC/ECB MESSAGE SENDING                 #@!#!## klucz SESYJNY DRUGIEJ STRONY MA BYC albo wspolny nie wlasny...
     entry_CBC = tk.Entry(window)
     entry_CBC.pack()
 
     tk_sendButtonCBC = tk.Button(window, text='send message Encoded CBC/ECB', command=lambda: send_message_encoded(clicked.get(), entry_CBC, sessionKey, socket)) #ZMIENIC SESSON KEY
     tk_sendButtonCBC.pack()
+
+    #  ------------------INPUT-USER-FRIENDLY-PASSWORD--------------------
+    tk.Label(window, text='Input your user-friendly password').pack()
+    entryPassword = tk.Entry(window)
+    entryPassword.pack()
+
+    setPasswordButton = tk.Button(window, text='Set password Button (encrypt RSA keys with new key)', command=lambda: button_set_password(entryPassword, rsaLocalKey))
+    setPasswordButton.pack()
 
 
     #  ------------------FILE-SENDING--------------------

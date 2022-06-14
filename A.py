@@ -8,21 +8,19 @@ from Threads.ReceiveThread import *
 from Threads.GuiThread import *
 
 # ---------------------------------------RSA KEYS-------------------------------------------------------
-# if not exists('./KeysA/PublicKeys/publicKeyA.pem') or not exists('./KeysA/PrivateKeys/privateKeyA.pem'):
-#     generate_keys('A')  # Wygenerowanie kluczy RSA
 
-# generate_keys('A')
-create_rsa_keys_encrypt_and_save('A')
+rsaLocalKeyClass = AESCipher('A')
+rsaLocalKeyClass.generate_rsa_keys()
+rsaLocalKeyClass.change_password_and_local_key_and_encrypt_rsa_keys_and_save('anything')
 
 # LOAD KEYS
-# publicKey, privateKey = load_keys('A')
-publicKey, privateKey = decrypt_rsa_keys_and_return('A')
+publicKey, privateKey = rsaLocalKeyClass.decrypt_rsa_keys_and_return()
 # -----------------------------------------------------------------------------------------------------
 print(publicKey)
 print(privateKey)
 
 #  Sockets
-HOST = '192.168.1.12'   # tomek - 192.168.1.12,  jakub -192.168.0.193, 127.0.0.1 zawsze dziala
+HOST = '192.168.1.12'  # tomek - 192.168.1.12,  jakub -192.168.0.193, 127.0.0.1 zawsze dziala
 receivePORT = 8888
 sendPORT = 8887
 BUFFER = 4194304  # 4 MB
@@ -32,17 +30,13 @@ socketSendA = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # AF_INET - soc
 
 queue = Queue()
 
-
-
 socketSendA.connect((HOST, sendPORT))
-
 
 socketReceiveA.bind((HOST, receivePORT))  # CONNECT TO SERVER
 socketReceiveA.listen(2)  # number of slots in queue
 
 socketReceiveA, address = socketReceiveA.accept()
 print(f"Uzyskano polaczenie od {address} | lub {address[0]}:{address[1]}")
-
 
 #  ---------------------------------Sending & Receiving Keys------------------------------
 #  RECEIVE PUBLIC KEY FROM B
@@ -58,7 +52,6 @@ socketSendA.send(publicKey.save_pkcs1(format='PEM'))
 # socketSendA.send(publicKey)
 print("klucz wysłany\n")
 
-
 #  SESSION KEY
 print("CREATING SESSION KEY:")
 sessionKey = os.urandom(16)  # sessionKey = b'mysecretpassword'  # 16 byte password
@@ -71,11 +64,13 @@ ciphertext = encrypt_session_key_with_rsa(sessionKey, otherPublicKey)  # zamieni
 socketSendA.send(ciphertext)  # To Do
 print("sent session KEY\n")
 
-
 # ---------------------------------------------------------------Threads------------------------------------------------
 # Create threads
-receivingThreadA = threading.Thread(target=ReceiveThread, args=[1, 'A', socketReceiveA, BUFFER, queue, publicKey, privateKey, sessionKey])
-GUIThreadA = threading.Thread(target=GuiThread, args=[2, 'A', socketSendA, BUFFER, queue, publicKey, privateKey, otherPublicKey, sessionKey])
+receivingThreadA = threading.Thread(target=ReceiveThread,
+                                    args=[1, 'A', socketReceiveA, BUFFER, queue, publicKey, privateKey, sessionKey])
+GUIThreadA = threading.Thread(target=GuiThread,
+                              args=[2, 'A', socketSendA, BUFFER, queue, publicKey, privateKey, otherPublicKey,
+                                    sessionKey, rsaLocalKeyClass])
 
 # Start threads
 receivingThreadA.start()
