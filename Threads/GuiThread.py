@@ -7,14 +7,14 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
 
-def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, otherPublicKey, sessionKey, rsaLocalKey):
-    print('Starting B GUI Thread')
+def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, otherPublicKey, sessionKey):
+    print("Starting ", name, " GUI Thread")
     #  -------
     #  TKINTER
     #  -------
     window = tk.Tk()
     window.title('Client ' + name)
-    window.geometry('500x500')
+    window.geometry('500x600')
 
 
     #  ---------------------
@@ -34,45 +34,41 @@ def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, othe
     entry = tk.Entry(window)
     entry.pack()
 
-    sendButton = tk.Button(window, text='send message', command=lambda: button_send_message(entry, socket))
+    sendButton = tk.Button(window, text='send message', command=lambda: button_send_message(BUFFER, entry, socket, otherPublicKey))
     sendButton.pack()
 
 
-    # RSA Messages (to delete in future) (won't be used for message exchange just session key)
-    entry_encoded = tk.Entry(window)
-    entry_encoded.pack()
+    #  RSA Messages (to delete in future) (won't be used for message exchange just session key)
+    entry_encoded_rsa = tk.Entry(window)
+    entry_encoded_rsa.pack()
 
-    sendButtonEncoded = tk.Button(window, text='send message Encoded RSA', command=lambda: send_message_encoded_rsa(entry_encoded, socket, otherPublicKey, privateKey))
+    sendButtonEncoded = tk.Button(window, text='send message Encoded RSA', command=lambda: send_message_encoded_rsa(BUFFER, entry_encoded_rsa, socket, otherPublicKey, privateKey))
     sendButtonEncoded.pack()
 
 
     #  Ciphering MODE
-    tk.Label(window, text='Choose ciphering mode:').pack()
+    tk.Label(window, text='\nChoose ciphering mode:').pack()
 
     clicked = tk.StringVar()
     clicked.set("CBC")  # default value
     options = ['ECB', 'CBC']
-
     OptionMenu(window, clicked, *options).pack()
-
-    cipheringMode = clicked.get()
-    print(cipheringMode)
-
 
     #  CBC/ECB MESSAGE SENDING                 #@!#!## klucz SESYJNY DRUGIEJ STRONY MA BYC albo wspolny nie wlasny...
     entry_CBC = tk.Entry(window)
     entry_CBC.pack()
 
-    tk_sendButtonCBC = tk.Button(window, text='send message Encoded CBC/ECB', command=lambda: send_message_encoded(clicked.get(), entry_CBC, sessionKey, socket)) #ZMIENIC SESSON KEY
+    tk_sendButtonCBC = tk.Button(window, text='send message Encoded CBC/ECB', command=lambda: send_message_encoded(BUFFER, clicked.get(), entry_CBC, sessionKey, socket, otherPublicKey))
     tk_sendButtonCBC.pack()
 
-    #  ------------------INPUT-USER-FRIENDLY-PASSWORD--------------------
-    tk.Label(window, text='Input your user-friendly password').pack()
-    entryPassword = tk.Entry(window)
-    entryPassword.pack()
 
-    setPasswordButton = tk.Button(window, text='Set password Button (encrypt RSA keys with new key)', command=lambda: button_set_password(entryPassword, rsaLocalKey))
-    setPasswordButton.pack()
+    #  ------------------INPUT-USER-FRIENDLY-PASSWORD--------------------
+    #tk.Label(window, text='Input your user-friendly password').pack()
+    #entryPassword = tk.Entry(window)
+    #entryPassword.pack()
+
+    #setPasswordButton = tk.Button(window, text='Set password Button (encrypt RSA keys with new key)', command=lambda: button_set_password(entryPassword, rsaLocalKey))
+    #setPasswordButton.pack()
 
 
     #  ------------------FILE-SENDING--------------------
@@ -87,11 +83,14 @@ def GuiThread(threadID, name, socket, BUFFER, queue, publicKey, privateKey, othe
     #  SENDING FILE
     tk.Label(window, textvariable=pathStringVar).pack()
 
-    fileOpenButton = tk.Button(window, text='file dialog', command=lambda: button_open_file_function(pathStringVar))
+    fileOpenButton = tk.Button(window, text='file dialog', command=lambda: button_open_file(pathStringVar))
     fileOpenButton.pack()
 
-    fileSendButton = tk.Button(window, text='send file', command=lambda: button_send_file_function(socket, BUFFER, pathStringVar.get(), progressBar, progressBarDescription, window))
+    fileSendButton = tk.Button(window, text='send file', command=lambda: button_send_file(socket, BUFFER, pathStringVar.get(), progressBar, progressBarDescription, window, otherPublicKey))
     fileSendButton.pack()
+
+    fileSendButtonCBCorECB = tk.Button(window, text='send file CBC/ECB', command=lambda: button_send_file_ecb_or_cbc(clicked.get(), socket, BUFFER, pathStringVar.get(), progressBar, progressBarDescription, window, sessionKey, otherPublicKey))
+    fileSendButtonCBCorECB.pack()
 
 
     # ------------------RECEIVING MESSAGES------------------

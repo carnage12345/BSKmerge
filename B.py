@@ -7,53 +7,51 @@ from Threads.ReceiveThread import *
 from Threads.GuiThread import *
 
 
-# ---------------------------------------RSA KEYS-------------------------------------------------------
-
-rsaLocalKeyClass = AESCipher('B')
-rsaLocalKeyClass.generate_rsa_keys()
-rsaLocalKeyClass.change_password_and_local_key_and_encrypt_rsa_keys_and_save('something')
-
-# LOAD KEYS
-publicKey, privateKey = rsaLocalKeyClass.decrypt_rsa_keys_and_return()
+# ------------------------------------------RSA KEYS---------------------------------------------------
+# if not exists('./KeysB/PublicKeys/publicKeyB.pem') or not exists('./KeysB/PrivateKeys/privateKeyB.pem'):
+#     generate_keys('B')  # Wygenerowanie kluczy RSA
+#
+# # LOAD KEYS
+# publicKey, privateKey = load_keys('B')
 # -----------------------------------------------------------------------------------------------------
-print(publicKey)
-print(privateKey)
 
-
-#  Sockets #czy nie da sie zrobic tego na jednu
-HOST = '192.168.1.12'  # tomek - 192.168.1.12,  jakub - 192.168.0.193, 127.0.0.1 zawsze dziala
+HOST = socket.gethostbyname(socket.gethostname())
 sendPORT = 8888
 receivePORT = 8887
-BUFFER = 4194304  # 4 MB
+BUFFER = 4194304  # 4MB
 
 socketReceiveB = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # AF_INET - socket family INET - ipv4 INET6 -ipv6
 socketSendB = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # AF_INET - socket family INET - ipv4 INET6 -ipv6
 
 queue = Queue()
 
-
 socketReceiveB.bind((HOST, receivePORT))  # CONNECT TO SERVER
 socketReceiveB.listen(2)  # liczba miejsc w kolejce
-
 socketSendB.connect((HOST, sendPORT))
 
 
 socketReceiveB, address = socketReceiveB.accept()
 print(f"Uzyskano polaczenie od {address} | lub {address[0]}:{address[1]}")
 
+# --------------------------------- LOGOWANIE -----------------------------------------
+password = password_popup_msg('B')
+localKey = hashPassword(password)
 
+if not exists('./KeysB/PublicKeys/publicKeyB.pem') or not exists('./KeysB/PrivateKeys/privateKeyB.pem'):
+    generate_keys_secret('B', localKey)
+publicKey, privateKey = load_keys_secret('B', localKey)
 
 #  ---------------------------------Sending & Receiving Keys------------------------------
 #  SEND PUBLIC KEY TO CLIENT (also receive key from client) # zmienic (A) i (B) juz nie aktualne
 print("wysyłam klucz swój publiczny")
 print("mój publicKey:" + str(publicKey))
-socketSendB.send(publicKey.save_pkcs1(format='PEM'))
-# socketSendB.send(publicKey)
+#socketSendB.send(publicKey.save_pkcs1(format='PEM'))
+socketSendB.send(publicKey.exportKey('PEM'))
 print("mój klucz publiczny wysłany\n")
 
 #  RECEIVE PUBLIC KEY FROM SERVER
-otherPublicKey = rsa.key.PublicKey.load_pkcs1(socketReceiveB.recv(BUFFER), format='PEM')  # DER
-# otherPublicKey = socketReceiveB.recv(BUFFER)
+#otherPublicKey = rsa.key.PublicKey.load_pkcs1(socketReceiveB.recv(BUFFER), format='PEM')  # DER
+otherPublicKey = RSA.importKey(socketReceiveB.recv(BUFFER))
 print("Otrzymano klucz publiczny:" + str(otherPublicKey))
 
 
@@ -66,7 +64,7 @@ print("sessionKey: " + str(receivedSessionKey))
 # ---------------------------------------------------------------Threads------------------------------------------------
 # Create threads
 receivingThreadB = threading.Thread(target=ReceiveThread, args=[1, 'B', socketReceiveB, BUFFER, queue, publicKey, privateKey, receivedSessionKey])
-GUIThreadB = threading.Thread(target=GuiThread, args=[2, 'B', socketSendB, BUFFER, queue, publicKey, privateKey, otherPublicKey, receivedSessionKey, rsaLocalKeyClass])
+GUIThreadB = threading.Thread(target=GuiThread, args=[2, 'B', socketSendB, BUFFER, queue, publicKey, privateKey, otherPublicKey, receivedSessionKey])
 
 # Start threads
 receivingThreadB.start()
